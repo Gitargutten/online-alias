@@ -2,10 +2,41 @@
 import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
 
+import { Input } from '@/components/starwind/input'
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+    <div>
+        <h1>Lag qr</h1>
+        <Input id="in" placeholder="Skriv noe" class={"w-1/2"}></Input>
+    </div>
+
+    <canvas id="finalImage" ></canvas>
+
+
+    <script>
+    import QRCode from 'qrcode'
+
+    const imageComponent = document.getElementById('finalImage') as HTMLCanvasElement | null;
+
+
+    document.addEventListener('astro:pageLoad', () => {
+      const params = new URLSearchParams(window.location.search);
+
+      const aliasWords = params.get('words');
+
+      if (aliasWords) {
+        console.log(aliasWords)
+      }
+    })
+
+
+    const inputField = document.getElementById('in') as HTMLInputElement | null;
+          inputField?.addEventListener('input', () => {
+            const img = QRCode.toCanvas(imageComponent, inputField.value)
+          });
+
+    </script>
 </Layout>

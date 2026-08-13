@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<h2 id="output">Hei</h2>
+
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const output = document.getElementById('output') as HTMLHeadingElement | null;
+const aliasWords = params.get('words');
+
+if (aliasWords && output) {
+  output.textContent = aliasWords;
+}
+</script>
