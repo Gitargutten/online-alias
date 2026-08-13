@@ -1,26 +1,106 @@
 ---
 import Layout from "../layouts/Layout.astro";
+
+import { Card, CardContent } from "@/components/starwind/card";
+import {
+  Carousel,
+  CarouselItem,
+  CarouselContent,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/starwind/carousel";
 ---
 
 <Layout>
-  <h1>Beskiv ordet</h1>
-  <ul id={"display-words"}></ul>
+  <div class="flex flex-col items-center justify-center p-8">
+    <h1 class="mb-8 text-2xl font-bold">Beskriv ordet</h1>
+
+    <Carousel
+      id="word-carousel"
+      autoInit={false}
+      opts={{ align: "start" }}
+      class="mx-auto w-full max-w-xs hidden"
+    >
+      <CarouselContent id="carousel-content">
+        <!-- Injection here -->
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
+
+    <p id="no-words-msg" class="hidden text-gray-500">
+      Fant ingen ord i aliasen
+    </p>
+  </div>
+
+  <template id="card-template">
+    <CarouselItem>
+      <div class="p-1">
+        <Card>
+          <CardContent
+            class="flex aspect-square items-center justify-center p-6 text-center"
+          >
+            <!-- Span where cards wil be put -->
+            <span class="word-display text-4xl font-semibold break-all"></span>
+          </CardContent>
+        </Card>
+      </div>
+    </CarouselItem>
+  </template>
 </Layout>
 
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const output = document.getElementById(
-    "display-words",
-  ) as HTMLUListElement | null;
-  const aliasWords = params.get("words");
+  import { unpackWords } from "@/scripts/compression";
+  import { createCarousel } from "@starwind-ui/astro/carousel";
+  import LZString from "lz-string";
 
-  if (aliasWords && output) {
-    const listOfWords = aliasWords.split(",").sort(() => Math.random() - 0.5);
+  function initClientWords() {
+    const params = new URLSearchParams(window.location.search);
+    const wordsParam = params.get("words");
 
-    listOfWords.forEach((word) => {
-      const li = document.createElement("li");
-      li.textContent = word;
-      output.appendChild(li);
+    const carouselEl = document.getElementById("word-carousel");
+    const template = document.getElementById(
+      "card-template",
+    ) as HTMLTemplateElement | null;
+    const noWordsMsg = document.getElementById("no-words-msg");
+
+    if (!carouselEl || !template || !noWordsMsg) return;
+
+    if (!wordsParam) {
+      noWordsMsg.classList.remove("hidden");
+      return;
+    }
+
+    const flexContainer = carouselEl.querySelector(".flex");
+    if (!flexContainer) return;
+
+    // Shuffling the words to get a random order
+
+    const words = unpackWords(wordsParam)
+      .split(",")
+      .sort(() => Math.random() - 0.5);
+
+    words.forEach((word) => {
+      const clone = template.content.cloneNode(true) as DocumentFragment;
+      const textSpan = clone.querySelector(".word-display");
+
+      if (textSpan) {
+        textSpan.textContent = word.trim();
+      }
+      flexContainer.appendChild(clone);
+    });
+
+    carouselEl.classList.remove("hidden");
+
+    void carouselEl.offsetWidth;
+
+    createCarousel(carouselEl, {
+      opts: {
+        align: "start",
+      },
     });
   }
+
+  initClientWords();
+  document.addEventListener("astro:after-swap", initClientWords);
 </script>

@@ -53,7 +53,10 @@ import { Input } from "@/components/starwind/input";
     <canvas id="final-image"></canvas>
 
     <script>
+      import { packWords } from "@/scripts/compression";
       import { createForm } from "@starwind-ui/astro/form";
+      import LZString from "lz-string";
+
       import QRCode from "qrcode";
 
       const app = document.querySelector<HTMLElement>("[data-alias-generator]");
@@ -78,15 +81,17 @@ import { Input } from "@/components/starwind/input";
         };
 
         createForm(form, {
-          onSubmit: ({ values }) => {
+          onSubmit: async ({ values }) => {
             const formData = new FormData(form);
             const aliasOrd = formData
               .getAll("words")
               .map((w) => w.toString().trim())
               .filter((word) => word !== "");
             if (output) {
-              const qrLink = `${baseUrl}/game?words=${aliasOrd.join(",")}`;
-              output.value = `Submitted ${aliasOrd.length} word(s).\nLink:  ${qrLink}`;
+              const data = packWords(aliasOrd.join(","));
+              const qrLink = `${baseUrl}/game?words=${data}`;
+              console.log(qrLink);
+              //output.value = `Submitted ${aliasOrd.length} word(s).\nLink:  ${qrLink}`;
 
               QRCode.toCanvas(canvas, qrLink);
             }
