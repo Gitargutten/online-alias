@@ -1,16 +1,26 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
 ---
 
-<h2 id="output">Hei</h2>
-
+<Layout>
+  <h1>Beskiv ordet</h1>
+  <ul id={"display-words"}></ul>
+</Layout>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const output = document.getElementById('output') as HTMLHeadingElement | null;
-const aliasWords = params.get('words');
+  const params = new URLSearchParams(window.location.search);
+  const output = document.getElementById(
+    "display-words",
+  ) as HTMLUListElement | null;
+  const aliasWords = params.get("words");
 
-if (aliasWords && output) {
-  output.textContent = aliasWords;
-}
+  if (aliasWords && output) {
+    const listOfWords = aliasWords.split(",").sort(() => Math.random() - 0.5);
+
+    listOfWords.forEach((word) => {
+      const li = document.createElement("li");
+      li.textContent = word;
+      output.appendChild(li);
+    });
+  }
 </script>

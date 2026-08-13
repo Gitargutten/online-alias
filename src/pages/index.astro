@@ -1,42 +1,151 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Welcome from "../components/Welcome.astro";
+import Layout from "../layouts/Layout.astro";
 
-import { Input } from '@/components/starwind/input'
+import { Button } from "@/components/starwind/button";
+import {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/starwind/field";
+import { Form, FormErrorSummary } from "@/components/starwind/form";
+
+import { Input } from "@/components/starwind/input";
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-    <div>
-        <h1>Lag qr</h1>
-        <Input id="in" placeholder="Skriv noe" class={"w-1/2"}></Input>
-    </div>
+  <div data-alias-generator>
+    <Form id={"words-input-form"}>
+      <FieldGroup>
+        <Field name={"words"}>
+          <FieldLabel>Skriv inn Alias ord</FieldLabel>
 
-    <canvas id="finalImage" ></canvas>
+          <div class="" id="input-words-container">
+            <FieldControl
+              name={"words"}
+              placeholder={"Skriv inn et fagord"}
+              autocomplete={"off"}
+            />
+          </div>
 
+          <FieldDescription
+            >Type a word to add another, or paste a comma-separated list.</FieldDescription
+          >
+          <FieldError match="valueMissing"
+            >Please enter at least one word.</FieldError
+          >
+        </Field>
+      </FieldGroup>
+
+      <Button type="submit">Lag QR-kode</Button>
+    </Form>
+
+    <output
+      id="form-output"
+      class="text-muted-foreground mt-3 block text-sm whitespace-pre-wrap"
+      aria-live="polite"></output>
+
+    <canvas id="final-image"></canvas>
 
     <script>
-    import QRCode from 'qrcode'
+      import { createForm } from "@starwind-ui/astro/form";
+      import QRCode from "qrcode";
 
-    const imageComponent = document.getElementById('finalImage') as HTMLCanvasElement | null;
+      const app = document.querySelector<HTMLElement>("[data-alias-generator]");
+      const form = app?.querySelector<HTMLFormElement>("#words-input-form");
+      const container = app?.querySelector<HTMLElement>(
+        "#input-words-container",
+      );
+      const output = app?.querySelector<HTMLOutputElement>("#form-output");
 
+      const baseUrl = window.location.origin;
+      const canvas = app?.querySelector<HTMLCanvasElement>("#final-image");
 
-    document.addEventListener('astro:pageLoad', () => {
-      const params = new URLSearchParams(window.location.search);
+      if (form && container) {
+        const createWordInput = (value = "") => {
+          const base = container.querySelector("input");
+          if (!base) return document.createElement("input");
 
-      const aliasWords = params.get('words');
+          const clone = base.cloneNode(true) as HTMLInputElement;
+          clone.value = value;
+          clone.removeAttribute("aria-invalid");
+          return clone;
+        };
 
-      if (aliasWords) {
-        console.log(aliasWords)
+        createForm(form, {
+          onSubmit: ({ values }) => {
+            const formData = new FormData(form);
+            const aliasOrd = formData
+              .getAll("words")
+              .map((w) => w.toString().trim())
+              .filter((word) => word !== "");
+            if (output) {
+              const qrLink = `${baseUrl}/game?words=${aliasOrd.join(",")}`;
+              output.value = `Submitted ${aliasOrd.length} word(s).\nLink:  ${qrLink}`;
+
+              QRCode.toCanvas(canvas, qrLink);
+            }
+          },
+        });
+        container.addEventListener("input", (e) => {
+          const inputs = container.querySelectorAll("input");
+          const lastInput = inputs[inputs.length - 1];
+
+          if (
+            e.target === lastInput &&
+            (e.target as HTMLInputElement).value.trim() !== ""
+          ) {
+            container.appendChild(createWordInput());
+          }
+        });
+
+        container.addEventListener("paste", (e) => {
+          const target = e.target as HTMLInputElement;
+          if (target.tagName !== "INPUT") return;
+
+          const rawPasteInput = (
+            e.clipboardData || (window as any).clipboardData
+          ).getData("text");
+
+          if (rawPasteInput.includes(",")) {
+            e.preventDefault();
+
+            const words = rawPasteInput
+              .split(",")
+              .map((word: string) => word.trim())
+              .filter((word: string) => word !== "");
+            if (words.length === 0) return;
+
+            const [first, ...rest] = words;
+            target.value = first;
+            target.after(...rest.map(createWordInput));
+
+            const allInputs = container.querySelectorAll("input");
+            const lastInput = allInputs[allInputs.length - 1];
+            if (lastInput.value.trim() !== "") {
+              container.appendChild(createWordInput());
+            }
+          }
+        });
       }
-    })
-
-
-    const inputField = document.getElementById('in') as HTMLInputElement | null;
-          inputField?.addEventListener('input', () => {
-            const img = QRCode.toCanvas(imageComponent, inputField.value)
-          });
-
     </script>
+
+    <script>
+      const imageComponent = document.getElementById(
+        "final-image",
+      ) as HTMLCanvasElement | null;
+
+      const inputField = document.getElementById(
+        "in",
+      ) as HTMLInputElement | null;
+      inputField?.addEventListener("input", () => {
+        const img = QRCode.toCanvas(imageComponent, inputField.value);
+      });
+    </script>
+  </div>
 </Layout>
