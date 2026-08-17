@@ -41,7 +41,8 @@ import {
             class="flex aspect-square items-center justify-center p-6 text-center"
           >
             <!-- Span where cards wil be put -->
-            <span class="word-display text-4xl font-semibold break-all"></span>
+            <span class="word-display text-4xl font-semibold break-normal"
+            ></span>
           </CardContent>
         </Card>
       </div>
@@ -52,7 +53,6 @@ import {
 <script>
   import { unpackWords } from "@/scripts/compression";
   import { createCarousel } from "@starwind-ui/astro/carousel";
-  import LZString from "lz-string";
 
   function initClientWords() {
     const params = new URLSearchParams(window.location.search);

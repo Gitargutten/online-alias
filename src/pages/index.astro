@@ -14,31 +14,29 @@ import {
 import { Form, FormErrorSummary } from "@/components/starwind/form";
 
 import { Input } from "@/components/starwind/input";
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
   <div data-alias-generator>
     <Form id={"words-input-form"}>
-      <FieldGroup>
+      <FieldGroup class:list={"pb-8"}>
         <Field name={"words"}>
           <FieldLabel>Skriv inn Alias ord</FieldLabel>
 
-          <div class="" id="input-words-container">
+          <div id="input-words-container">
             <FieldControl
               name={"words"}
+              class={"mb-2"}
               placeholder={"Skriv inn et fagord"}
               autocomplete={"off"}
             />
           </div>
 
           <FieldDescription
-            >Type a word to add another, or paste a comma-separated list.</FieldDescription
+            >Skriv inn ord til Aliasen (du kan også lime inn kommaseparerte
+            ord).</FieldDescription
           >
-          <FieldError match="valueMissing"
-            >Please enter at least one word.</FieldError
-          >
+          <FieldError match="valueMissing">Skriv inn minst ett ord</FieldError>
         </Field>
       </FieldGroup>
 
@@ -55,7 +53,6 @@ import { Input } from "@/components/starwind/input";
     <script>
       import { packWords } from "@/scripts/compression";
       import { createForm } from "@starwind-ui/astro/form";
-      import LZString from "lz-string";
 
       import QRCode from "qrcode";
 
@@ -83,7 +80,7 @@ import { Input } from "@/components/starwind/input";
         createForm(form, {
           onSubmit: async ({ values }) => {
             const formData = new FormData(form);
-            const aliasOrd = formData
+            const aliasOrd = new FormData(form)
               .getAll("words")
               .map((w) => w.toString().trim())
               .filter((word) => word !== "");
@@ -91,8 +88,6 @@ import { Input } from "@/components/starwind/input";
               const data = packWords(aliasOrd.join(","));
               const qrLink = `${baseUrl}/game?words=${data}`;
               console.log(qrLink);
-              //output.value = `Submitted ${aliasOrd.length} word(s).\nLink:  ${qrLink}`;
-
               QRCode.toCanvas(canvas, qrLink);
             }
           },
@@ -138,19 +133,6 @@ import { Input } from "@/components/starwind/input";
           }
         });
       }
-    </script>
-
-    <script>
-      const imageComponent = document.getElementById(
-        "final-image",
-      ) as HTMLCanvasElement | null;
-
-      const inputField = document.getElementById(
-        "in",
-      ) as HTMLInputElement | null;
-      inputField?.addEventListener("input", () => {
-        const img = QRCode.toCanvas(imageComponent, inputField.value);
-      });
     </script>
   </div>
 </Layout>
