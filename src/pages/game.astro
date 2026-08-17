@@ -1,106 +1,105 @@
 ---
 import Layout from "../layouts/Layout.astro";
-
 import { Card, CardContent } from "@/components/starwind/card";
-import {
-  Carousel,
-  CarouselItem,
-  CarouselContent,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/starwind/carousel";
 ---
 
 <Layout>
-  <div class="flex flex-col items-center justify-center p-8">
-    <h1 class="mb-8 text-2xl font-bold">Beskriv ordet</h1>
+  <div class="grid grid-cols-1 grid-rows-6 items-center justify-center h-screen w-full">
+    <div class="row-span-1 h-full w-full text-center p-12">
+      <h1 class="w-full text-4xl font-bold ">Beskriv ordet</h1>
+      <h2 id="teller">Kort igjen: </h2>
+    </div>
 
-    <Carousel
-      id="word-carousel"
-      autoInit={false}
-      opts={{ align: "start" }}
-      class="mx-auto w-full max-w-xs hidden"
-    >
-      <CarouselContent id="carousel-content">
-        <!-- Injection here -->
-      </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
-    </Carousel>
+    <div id="game-container" class="mx-auto hidden w-full row-span-4 max-w-xs">
+      <Card class:list={"w-full h-full"}>
+        <CardContent class="flex aspect-square items-center justify-center text-center w-full h-full">
+          <span id="word-display" class="break-normal text-4xl font-semibold transition-opacity duration-200">
+            <!-- Cards will be injected here -->
+          </span>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div id="game-controls" class="hidden w-full h-full row-span-1">
+      <button id="btn-skip" class="rounded-md bg-yellow-400 px-6 py-2 w-1/2 h-full font-medium text-white transition-colors hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2">
+        Hopp over
+      </button>
+      <button id="btn-correct" class="rounded-md bg-green-500 px-6 py-2 w-1/2 h-full font-medium text-white transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2">
+        Riktig
+      </button>
+    </div>
 
     <p id="no-words-msg" class="hidden text-gray-500">
       Fant ingen ord i aliasen
     </p>
   </div>
-
-  <template id="card-template">
-    <CarouselItem>
-      <div class="p-1">
-        <Card>
-          <CardContent
-            class="flex aspect-square items-center justify-center p-6 text-center"
-          >
-            <!-- Span where cards wil be put -->
-            <span class="word-display text-4xl font-semibold break-normal"
-            ></span>
-          </CardContent>
-        </Card>
-      </div>
-    </CarouselItem>
-  </template>
 </Layout>
 
 <script>
   import { unpackWords } from "@/scripts/compression";
-  import { createCarousel } from "@starwind-ui/astro/carousel";
+  import confetti from 'canvas-confetti';
 
-  function initClientWords() {
+  function initGame() {
     const params = new URLSearchParams(window.location.search);
     const wordsParam = params.get("words");
 
-    const carouselEl = document.getElementById("word-carousel");
-    const template = document.getElementById(
-      "card-template",
-    ) as HTMLTemplateElement | null;
+    const gameContainer = document.getElementById("game-container");
+    const wordDisplay = document.getElementById("word-display");
+    const gameControls = document.getElementById("game-controls");
     const noWordsMsg = document.getElementById("no-words-msg");
+    const btnSkip = document.getElementById("btn-skip");
+    const btnCorrect = document.getElementById("btn-correct");
+    const teller = document.getElementById("teller");
 
-    if (!carouselEl || !template || !noWordsMsg) return;
+    if (!gameContainer || !wordDisplay || !gameControls || !noWordsMsg || !btnSkip || !btnCorrect || !teller) return;
 
     if (!wordsParam) {
       noWordsMsg.classList.remove("hidden");
       return;
     }
 
-    const flexContainer = carouselEl.querySelector(".flex");
-    if (!flexContainer) return;
-
-    // Shuffling the words to get a random order
-
-    const words = unpackWords(wordsParam)
+    const wordsQueue = unpackWords(wordsParam)
       .split(",")
       .sort(() => Math.random() - 0.5);
 
-    words.forEach((word) => {
-      const clone = template.content.cloneNode(true) as DocumentFragment;
-      const textSpan = clone.querySelector(".word-display");
-
-      if (textSpan) {
-        textSpan.textContent = word.trim();
+    const renderCard = () => {
+      if (wordsQueue.length > 0) {
+        teller.textContent = "Kort igjen: "  + wordsQueue.length
+      } else {
+        teller.classList.add("hidden")
       }
-      flexContainer.appendChild(clone);
-    });
+      wordDisplay.style.opacity = "0";
 
-    carouselEl.classList.remove("hidden");
+      setTimeout(() => {
+        if (wordsQueue.length === 0) {
+          wordDisplay.textContent = "Ferdig!";
+          gameControls.classList.add("hidden");
+          gameControls.classList.remove("grid-cols-2");
+          confetti()
+        } else {
+          wordDisplay.textContent = wordsQueue[0].trim();
+        }
+        wordDisplay.style.opacity = "1";
+      }, 250);
+    };
 
-    void carouselEl.offsetWidth;
+    btnCorrect.onclick = () => {
+      wordsQueue.shift();
+      renderCard();
+    };
 
-    createCarousel(carouselEl, {
-      opts: {
-        align: "start",
-      },
-    });
+    btnSkip.onclick = () => {
+      const skippedWord = wordsQueue.shift();
+      if (skippedWord) wordsQueue.push(skippedWord);
+      renderCard();
+    };
+
+    gameContainer.classList.remove("hidden");
+    gameControls.classList.remove("hidden");
+    gameControls.classList.add("grid-cols-2");
+    renderCard();
   }
 
-  initClientWords();
-  document.addEventListener("astro:after-swap", initClientWords);
+  initGame();
+  document.addEventListener("astro:after-swap", initGame);
 </script>
