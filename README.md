@@ -1,46 +1,14 @@
-# Astro Starter Kit: Basics
+# Online Alias
 
-```sh
-npm create astro@latest -- --template basics
-```
+A simple website which lets you create a simple Alias deck to be used in a classroom setting or similar.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## How to use
+To create a new Alias, simply enter the base-url the website is hosted on.
+Write in all the words you want included in the Alias. (You can also copy paste words in the format: <word1>,<word2>, etc...)
+Press: Lag QR-kode
 
-## 🚀 Project Structure
+## Technical specs
+The project includes the astro code to generate two html pages with some embedded javascript.
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+No data is sent to the server, and no backend is nesscesary. The words entered are slightly compressed (mosttly for a basic obfuscation) and included as a url-parameter in the QR-code.
+When QR-code is scanned, the website the user lands on decodes the url parameter, and randomises the order of the words.
