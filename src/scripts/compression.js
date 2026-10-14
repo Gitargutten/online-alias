@@ -1,4 +1,4 @@
-const ALPHABET = " abcdefghijklmnopqrstuvwxyz,æøå";
+const ALPHABET = " abcdefghijklmnopqrstuvwxyz,æøå():;-.";
 
 export function packWords(str) {
   str = str.toLowerCase();

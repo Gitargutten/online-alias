@@ -88,7 +88,7 @@ import { Input } from "@/components/starwind/input";
               const data = packWords(aliasOrd.join(","));
               const qrLink = `${baseUrl}/game?words=${data}`;
               console.log(qrLink);
-              QRCode.toCanvas(canvas, qrLink);
+              QRCode.toCanvas(canvas, qrLink, { errorCorrectionLevel: "L" });
             }
           },
         });
